@@ -109,32 +109,10 @@ The function will be available at `http://localhost:7071/api/ParseICalFeed`
 
 3. **Configure Function Authorization**: Ensure the function is set to `Function` authorization level for security
 
-## Power Automate Integration
-
-### Setting Up the Flow
-
-1. **Create a new Power Automate flow** with a daily recurrence trigger
-2. **Add a "Delete all events" action** targeting your dedicated TripIt calendar
-3. **Add an HTTP request action** to call this Azure Function:
-   - **Method**: GET
-   - **URI**: `https://your-function-app.azurewebsites.net/api/ParseICalFeed?icalFeedUrl=[YOUR-TRIPIT-ICAL-URL]`
-   - **Authentication**: Function Key
-4. **Parse the JSON response** and loop through each event
-5. **Create calendar events** in your dedicated Outlook calendar for each returned event
-
-### TripIt iCal Feed URL
-
-To get your TripIt iCal feed URL:
-1. Log into TripIt
-2. Go to Settings → Calendar Feeds
-3. Copy your private iCal feed URL
-
 ## Features
 
 - **Year-based filtering**: Automatically retrieves events from the current calendar year
 - **Timezone handling**: Converts all times to UTC for consistent processing
-- **Error handling**: Graceful handling of network issues and invalid feeds
-- **Logging**: Comprehensive logging for debugging and monitoring
 
 ## Limitations
 
@@ -147,6 +125,10 @@ To get your TripIt iCal feed URL:
 - **iCal.NET**: Library for parsing iCal format files
 - **Microsoft.Azure.Functions.Worker**: Azure Functions runtime
 - **Microsoft.ApplicationInsights**: Application monitoring and logging
+
+## Acknowledgments
+
+Thanks to the Team from [iCal.NET](https://github.com/ical-org/ical.net) for providing an easy to use and well documented way on how to deal with iCal files! 
 
 ## License
 
