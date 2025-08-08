@@ -99,13 +99,6 @@ public class ParseICalFeed
                 EventEnd = calendarEvent.End.AsUtc,
 
             });
-
-            //foreach (var prop in calendarEvent.GetType().GetProperties())
-            //{
-            //    var value = prop.GetValue(calendarEvent, null);
-            //    responseString += $"{prop.Name}: {value}\n";
-            //}
-            //responseString += "-----------NEXT ITEM COMING UP---------------\n";
         }
 
         return new OkObjectResult(responseEvents);
