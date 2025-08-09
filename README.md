@@ -1,4 +1,4 @@
-# ICalEventParser
+# TripItICalEventParser
 
 An Azure Function that parses iCal feeds and converts them to JSON format, specifically designed for TripIt integration with Microsoft Power Automate.
 
