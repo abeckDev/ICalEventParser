@@ -1,0 +1,182 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "contentVersion": "1.0.0.0",
+        "triggers": {
+            "Trigger_-_Every": {
+                "recurrence": {
+                    "interval": 1,
+                    "frequency": "Day",
+                    "timeZone": "W. Europe Standard Time",
+                    "schedule": {
+                        "hours": [
+                            0
+                        ]
+                    }
+                },
+                "evaluatedRecurrence": {
+                    "interval": 1,
+                    "frequency": "Day",
+                    "timeZone": "W. Europe Standard Time",
+                    "schedule": {
+                        "hours": [
+                            0
+                        ]
+                    }
+                },
+                "type": "Recurrence"
+            }
+        },
+        "actions": {
+            "Get_the_TripIt_Calendar_Feed": {
+                "runAfter": {},
+                "type": "Http",
+                "inputs": {
+                    "uri": "<Azure Function URL>",
+                    "method": "GET",
+                    "headers": {
+                        "x-functions-key": "<Azure Function Key>"
+                    },
+                    "queries": {
+                        "icalFeedUrl": "<TripIt - FeedUrl>"
+                    }
+                },
+                "runtimeConfiguration": {
+                    "contentTransfer": {
+                        "transferMode": "Chunked"
+                    }
+                }
+            },
+            "Parse_JSON_response_from_ICal_parser": {
+                "runAfter": {
+                    "Get_the_TripIt_Calendar_Feed": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ParseJson",
+                "inputs": {
+                    "content": "@body('Get_the_TripIt_Calendar_Feed')",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "eventTitel": {
+                                    "type": "string"
+                                },
+                                "location": {
+                                    "type": "string"
+                                },
+                                "eventStart": {
+                                    "type": "string"
+                                },
+                                "eventEnd": {
+                                    "type": "string"
+                                },
+                                "description": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "eventTitel",
+                                "location",
+                                "eventStart",
+                                "eventEnd",
+                                "description"
+                            ]
+                        }
+                    }
+                }
+            },
+            "Create_new_Events": {
+                "foreach": "@body('Parse_JSON_response_from_ICal_parser')",
+                "actions": {
+                    "Create_event_(V3)": {
+                        "type": "ApiConnection",
+                        "inputs": {
+                            "host": {
+                                "connection": {
+                                    "name": "@parameters('$connections')['outlook']['connectionId']"
+                                }
+                            },
+                            "method": "post",
+                            "body": {
+                                "Subject": "@item()['eventTitel']",
+                                "Start": "@item()['eventStart']",
+                                "End": "@item()['eventEnd']",
+                                "Body": "<p class=\"editor-paragraph\">@{item()['description']}</p>",
+                                "Location": "@item()['location']"
+                            },
+                            "path": "/datasets/calendars/v3/tables/@{encodeURIComponent(encodeURIComponent('AQMkADAwATM0MDAAMS05MWI0LWEwOWQtMDACLTAwCgBGAAADidActbuEREK8oHrQaWr40gcArzMC5eknz0O7Q6pHmaGGlAAAAgEGAAAArzMC5eknz0O7Q6pHmaGGlAAIPLZ_SgAAAA=='))}/items"
+                        }
+                    }
+                },
+                "runAfter": {
+                    "Delete_each_event": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Foreach"
+            },
+            "Get_all_Events_in_current_Outlook_TripIt_Calendar": {
+                "runAfter": {
+                    "Parse_JSON_response_from_ICal_parser": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['outlook']['connectionId']"
+                        }
+                    },
+                    "method": "get",
+                    "path": "/datasets/calendars/v3/tables/@{encodeURIComponent(encodeURIComponent('AQMkADAwATM0MDAAMS05MWI0LWEwOWQtMDACLTAwCgBGAAADidActbuEREK8oHrQaWr40gcArzMC5eknz0O7Q6pHmaGGlAAIPLZ_SgAAAA=='))}/items"
+                }
+            },
+            "Delete_each_event": {
+                "foreach": "@body('Get_all_Events_in_current_Outlook_TripIt_Calendar')?['value']",
+                "actions": {
+                    "Delete_event": {
+                        "type": "ApiConnection",
+                        "inputs": {
+                            "host": {
+                                "connection": {
+                                    "name": "@parameters('$connections')['outlook']['connectionId']"
+                                }
+                            },
+                            "method": "delete",
+                            "path": "/datasets/calendars/tables/@{encodeURIComponent(encodeURIComponent('AQMkADAwATM0MDAAMS05MWI0LWEwOWQtMDACLTAwCgBGAAADidActbuEREK8oHrQaWr40gcArzMC5eknz0O7Q6pHmaGGlAAAAgEGAAAArzMC5eknz0O7Q6pHmaGGlAAIPLZ_SgAAAA=='))}/items/@{encodeURIComponent(encodeURIComponent(item()?['Id']))}"
+                        }
+                    }
+                },
+                "runAfter": {
+                    "Get_all_Events_in_current_Outlook_TripIt_Calendar": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Foreach"
+            }
+        },
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "type": "Object",
+                "defaultValue": {}
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "type": "Object",
+            "value": {
+                "outlook": {
+                    "id": "/subscriptions/b814d650-0963-4701-9dc9-feffc970ad6a/providers/Microsoft.Web/locations/germanywestcentral/managedApis/outlook",
+                    "connectionId": "/subscriptions/b814d650-0963-4701-9dc9-feffc970ad6a/resourceGroups/tripiteventfeedparser/providers/Microsoft.Web/connections/outlook",
+                    "connectionName": "outlook"
+                }
+            }
+        }
+    }
+}
