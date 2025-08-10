@@ -38,7 +38,7 @@
                         "x-functions-key": "<Azure Function Key>"
                     },
                     "queries": {
-                        "icalFeedUrl": "<TripIT - FeedUrl"
+                        "icalFeedUrl": "<TripIt - FeedUrl>"
                     }
                 },
                 "runtimeConfiguration": {
