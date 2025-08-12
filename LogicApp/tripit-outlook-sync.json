@@ -104,6 +104,7 @@
                                 "Subject": "@item()['eventTitel']",
                                 "Start": "@item()['eventStart']",
                                 "End": "@item()['eventEnd']",
+                                "TimeZone": "(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna",
                                 "Body": "<p class=\"editor-paragraph\">@{item()['description']}</p>",
                                 "Location": "@item()['location']"
                             },
